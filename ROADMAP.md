@@ -5,10 +5,10 @@
 - All data ingestion relies on the external `dataset` hostpack API; no dataset preprocessing logic lives in this repository.
 - Tests are implemented after the core pipeline is complete; they remain decoupled and cover every critical computation path.
 
-## Phase 0 — Core Skeleton (Week 0-1)
-- Establish minimal CMake targets for the core library and a single executable entry point.
-- Implement essential math utilities in `src/core` (vectors, matrices, transforms) as header-only modules with constexpr-friendly operations.
-- Provide a compact configuration loader: a hand-written JSON subset parser that supports the exact structures needed for training parameters and file paths.
+## Phase 0 — Core Skeleton (Week 0-1, Complete)
+- CMake now defines the `instantngp_core` static library and a minimalist `ngp-baseline-tcnn` executable, both compiled with strict C++23 flags.
+- Header-only math utilities in `include/instantngp/core/math.hpp` supply constexpr-friendly vectors, transforms, and composition helpers.
+- A bespoke JSON subset parser (`include/instantngp/core/config.hpp`, `src/core/config.cpp`) parses configuration documents without external dependencies.
 
 ## Phase 1 — Hostpack Integration (Week 1-2)
 - Create `HostpackLoader` wrapping `dataset::open_hostpack`, exposing cameras, frames, AABB, and color space in normalized formats ready for GPU upload.
