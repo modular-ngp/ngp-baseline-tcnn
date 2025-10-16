@@ -10,10 +10,10 @@
 - Header-only math utilities in `include/instantngp/core/math.hpp` supply constexpr-friendly vectors, transforms, and composition helpers.
 - A bespoke JSON subset parser (`include/instantngp/core/config.hpp`, `src/core/config.cpp`) parses configuration documents without external dependencies.
 
-## Phase 1 — Hostpack Integration (Week 1-2)
-- Create `HostpackLoader` wrapping `dataset::open_hostpack`, exposing cameras, frames, AABB, and color space in normalized formats ready for GPU upload.
-- Implement CPU buffers that prepare ray origins/directions and per-frame metadata using only the math primitives from Phase 0.
-- Define deterministic device upload helpers that mirror hostpack stride/pixel metadata and expose raw device pointers to downstream stages.
+## Phase 1 — Hostpack Integration (Week 1-2, Complete)
+- Implemented `instantngp::io::HostpackLoader` (`include/instantngp/io/hostpack_loader.hpp`, `src/io/hostpack_loader.cpp`) that wraps the `dataset` API, normalizes camera intrinsics/extrinsics, exposes scene bounds, and surfaces frame/image metadata.
+- Added `RayBatch` generation using the core math primitives to precompute deterministic ray origins and directions per frame.
+- Introduced `core::DeviceBuffer` (`include/instantngp/core/device_buffer.hpp`) to manage CUDA memory and provide stride-aware image uploads that mirror hostpack layout.
 
 ## Phase 2 — Encoding & Network Core (Week 2-3)
 - Configure `tiny-cuda-nn` multi-resolution hash encoding and minimal density/color MLP heads, parameterized strictly through the internal config loader.
