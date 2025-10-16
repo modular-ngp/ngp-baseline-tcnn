@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(ngp-baseline-tcnn VERSION 1.0.0 LANGUAGES CXX)
+project(ngp-baseline-tcnn VERSION 1.0.0 LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,3 +17,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tiny-cuda-nn)
 target_link_libraries(ngp-baseline-tcnn PRIVATE tiny-cuda-nn)
+
+include(FetchContent)
+FetchContent_Declare(
+        dataset
+        GIT_REPOSITORY https://github.com/modular-ngp/dataset.git
+        GIT_TAG master
+)
+FetchContent_MakeAvailable(dataset)
+target_link_libraries(ngp-baseline-tcnn PRIVATE dataset::dataset)
