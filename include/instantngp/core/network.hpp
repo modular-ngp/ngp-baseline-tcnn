@@ -6,22 +6,12 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
+#include <tiny-cuda-nn/network_with_input_encoding.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
-
-// Forward decls for tiny-cuda-nn
-namespace tcnn {
-template <typename T, typename PARAMS_T = T>
-class NetworkWithInputEncoding;
-
-template <typename T, typename PARAMS_T = T>
-class Encoding;
-
-template <typename T, typename PARAMS_T = T>
-class Network;
-}
 
 namespace instantngp::core {
 

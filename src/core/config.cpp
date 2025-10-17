@@ -63,7 +63,7 @@ private:
             case '"': {
                 auto string_value = parse_string();
                 if (!string_value.has_value()) {
-                    return std::unexpected(string_value.error());
+                    return instantngp::unexpected(string_value.error());
                 }
                 return Value{std::move(string_value.value())};
             }
@@ -77,7 +77,7 @@ private:
                 if (c == '-' || std::isdigit(static_cast<unsigned char>(c)) != 0) {
                     return parse_number();
                 }
-                return std::unexpected(ParseError{.message = "Invalid JSON token", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Invalid JSON token", .offset = cursor_});
         }
     }
 
@@ -93,16 +93,16 @@ private:
         while (true) {
             skip_whitespace();
             if (peek() != '"') {
-                return std::unexpected(ParseError{.message = "Expected string key in object", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Expected string key in object", .offset = cursor_});
             }
             auto key_result = parse_string();
             if (!key_result.has_value()) {
-                return std::unexpected(key_result.error());
+                return instantngp::unexpected(key_result.error());
             }
             std::string key = std::move(key_result.value());
             skip_whitespace();
             if (advance() != ':') {
-                return std::unexpected(ParseError{.message = "Expected ':' after object key", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Expected ':' after object key", .offset = cursor_});
             }
             skip_whitespace();
             auto value = parse_value();
@@ -116,7 +116,7 @@ private:
                 break;
             }
             if (delimiter != ',') {
-                return std::unexpected(ParseError{.message = "Expected ',' or '}' in object", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Expected ',' or '}' in object", .offset = cursor_});
             }
             skip_whitespace();
         }
@@ -145,7 +145,7 @@ private:
                 break;
             }
             if (delimiter != ',') {
-                return std::unexpected(ParseError{.message = "Expected ',' or ']' in array", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Expected ',' or ']' in array", .offset = cursor_});
             }
             skip_whitespace();
         }
@@ -161,7 +161,7 @@ private:
             advance();
         } else {
             if (std::isdigit(static_cast<unsigned char>(peek())) == 0) {
-                return std::unexpected(ParseError{.message = "Invalid number literal", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Invalid number literal", .offset = cursor_});
             }
             while (std::isdigit(static_cast<unsigned char>(peek())) != 0) {
                 advance();
@@ -170,7 +170,7 @@ private:
         if (peek() == '.') {
             advance();
             if (std::isdigit(static_cast<unsigned char>(peek())) == 0) {
-                return std::unexpected(ParseError{.message = "Invalid fractional component", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Invalid fractional component", .offset = cursor_});
             }
             while (std::isdigit(static_cast<unsigned char>(peek())) != 0) {
                 advance();
@@ -182,7 +182,7 @@ private:
                 advance();
             }
             if (std::isdigit(static_cast<unsigned char>(peek())) == 0) {
-                return std::unexpected(ParseError{.message = "Invalid exponent component", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Invalid exponent component", .offset = cursor_});
             }
             while (std::isdigit(static_cast<unsigned char>(peek())) != 0) {
                 advance();
@@ -193,7 +193,7 @@ private:
         double number{};
         const auto conversion = std::from_chars(token.data(), token.data() + token.size(), number);
         if (conversion.ec != std::errc{}) {
-            return std::unexpected(ParseError{.message = "Failed to parse numeric literal", .offset = start});
+            return instantngp::unexpected(ParseError{.message = "Failed to parse numeric literal", .offset = start});
         }
         return Value{number};
     }
@@ -201,7 +201,7 @@ private:
     instantngp::expected<Value, ParseError> parse_literal(std::string_view literal, Value value) {
         for (const char expected : literal) {
             if (is_end() || advance() != expected) {
-                return std::unexpected(ParseError{.message = "Invalid literal", .offset = cursor_});
+                return instantngp::unexpected(ParseError{.message = "Invalid literal", .offset = cursor_});
             }
         }
         return value;
@@ -210,7 +210,7 @@ private:
     instantngp::expected<std::string, ParseError> parse_string() {
         std::string result;
         if (advance() != '"') {
-            return std::unexpected(ParseError{.message = "Expected '\"' to start string", .offset = cursor_});
+            return instantngp::unexpected(ParseError{.message = "Expected '\"' to start string", .offset = cursor_});
         }
         while (!is_end()) {
             const char c = advance();
@@ -229,13 +229,13 @@ private:
                     case 'r': result.push_back('\r'); break;
                     case 't': result.push_back('\t'); break;
                     default:
-                        return std::unexpected(ParseError{.message = "Unsupported escape sequence", .offset = cursor_});
+                        return instantngp::unexpected(ParseError{.message = "Unsupported escape sequence", .offset = cursor_});
                 }
             } else {
                 result.push_back(c);
             }
         }
-        return std::unexpected(ParseError{.message = "Unterminated string literal", .offset = cursor_});
+        return instantngp::unexpected(ParseError{.message = "Unterminated string literal", .offset = cursor_});
     }
 
     std::string_view source_;
@@ -318,7 +318,7 @@ instantngp::expected<Document, ParseError> Document::from_string(std::string_vie
     Parser parser{source};
     auto result = parser.parse();
     if (!result.has_value()) {
-        return std::unexpected(result.error());
+        return instantngp::unexpected(result.error());
     }
     return Document{std::move(result.value())};
 }
@@ -328,7 +328,7 @@ instantngp::expected<Document, ParseError> Document::from_file(std::string_view 
     const fs::path file_path{path};
     std::ifstream file{file_path, std::ios::binary};
     if (!file) {
-        return std::unexpected(ParseError{.message = "Unable to open configuration file", .offset = 0});
+        return instantngp::unexpected(ParseError{.message = "Unable to open configuration file", .offset = 0});
     }
     std::string content;
     file.seekg(0, std::ios::end);
@@ -336,7 +336,7 @@ instantngp::expected<Document, ParseError> Document::from_file(std::string_view 
     file.seekg(0, std::ios::beg);
     file.read(content.data(), static_cast<std::streamsize>(content.size()));
     if (!file) {
-        return std::unexpected(ParseError{.message = "Failed to read configuration file", .offset = 0});
+        return instantngp::unexpected(ParseError{.message = "Failed to read configuration file", .offset = 0});
     }
     return from_string(content);
 }
