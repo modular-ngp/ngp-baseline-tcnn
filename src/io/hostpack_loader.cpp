@@ -56,12 +56,12 @@ HostpackLoader::HostpackLoader(void* handle, std::string path, PixelFormat pixel
       frame_metadata_{std::move(metadata)},
       image_views_{std::move(images)} {}
 
-std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_view pack_path) {
+instantngp::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_view pack_path) {
     const std::string path{pack_path};
     dataset::PackHandle handle = dataset::open_hostpack(path);
     if (handle == nullptr) {
         const dataset::Error error = dataset::last_error();
-        return std::unexpected(LoaderError{
+        return instantngp::unexpected(LoaderError{
                 .code = LoaderErrorCode::OpenFailed,
                 .message = "Failed to open hostpack '" + path + "' (dataset error code " + std::to_string(static_cast<int>(error)) + ")"});
     }
@@ -80,7 +80,7 @@ std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_vi
     const auto pixel_format_opt = to_pixel_format(dataset::pack_pixel_format(handle));
     if (!pixel_format_opt.has_value()) {
         close_on_failure();
-        return std::unexpected(LoaderError{
+        return instantngp::unexpected(LoaderError{
                 .code = LoaderErrorCode::UnsupportedPixelFormat,
                 .message = "Unsupported pixel format in hostpack"});
     }
@@ -88,7 +88,7 @@ std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_vi
     const auto color_space_opt = to_color_space(dataset::scene_color_space(handle));
     if (!color_space_opt.has_value()) {
         close_on_failure();
-        return std::unexpected(LoaderError{
+        return instantngp::unexpected(LoaderError{
                 .code = LoaderErrorCode::UnsupportedColorSpace,
                 .message = "Unsupported color space in hostpack"});
     }
@@ -97,14 +97,14 @@ std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_vi
     const dataset::CameraSOAView camera_view = dataset::camera_soa(handle);
     if (camera_view.count == 0) {
         close_on_failure();
-        return std::unexpected(LoaderError{
+        return instantngp::unexpected(LoaderError{
                 .code = LoaderErrorCode::MissingCameraData,
                 .message = "Hostpack contains no camera entries"});
     }
 
-    auto ensure_camera_array = [&](const float* ptr, std::string_view name) -> std::expected<const float*, LoaderError> {
+    auto ensure_camera_array = [&](const float* ptr, std::string_view name) -> instantngp::expected<const float*, LoaderError> {
         if (ptr == nullptr) {
-            return std::unexpected(LoaderError{
+            return instantngp::unexpected(LoaderError{
                     .code = LoaderErrorCode::MissingCameraData,
                     .message = std::string{name} + " array missing from hostpack"});
         }
@@ -114,26 +114,26 @@ std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_vi
     auto fx_ptr_result = ensure_camera_array(camera_view.fx, "fx");
     if (!fx_ptr_result.has_value()) {
         close_on_failure();
-        return std::unexpected(fx_ptr_result.error());
+        return instantngp::unexpected(fx_ptr_result.error());
     }
     auto fy_ptr_result = ensure_camera_array(camera_view.fy, "fy");
     if (!fy_ptr_result.has_value()) {
         close_on_failure();
-        return std::unexpected(fy_ptr_result.error());
+        return instantngp::unexpected(fy_ptr_result.error());
     }
     auto cx_ptr_result = ensure_camera_array(camera_view.cx, "cx");
     if (!cx_ptr_result.has_value()) {
         close_on_failure();
-        return std::unexpected(cx_ptr_result.error());
+        return instantngp::unexpected(cx_ptr_result.error());
     }
     auto cy_ptr_result = ensure_camera_array(camera_view.cy, "cy");
     if (!cy_ptr_result.has_value()) {
         close_on_failure();
-        return std::unexpected(cy_ptr_result.error());
+        return instantngp::unexpected(cy_ptr_result.error());
     }
     if (camera_view.T3x4 == nullptr) {
         close_on_failure();
-        return std::unexpected(LoaderError{
+        return instantngp::unexpected(LoaderError{
                 .code = LoaderErrorCode::MissingCameraData,
                 .message = "Camera transforms (T3x4) missing from hostpack"});
     }
@@ -147,7 +147,7 @@ std::expected<HostpackLoader, LoaderError> HostpackLoader::create(std::string_vi
         const std::size_t camera_index = dataset::frame_camera_index(handle, frame_index);
         if (camera_index >= camera_view.count) {
             close_on_failure();
-            return std::unexpected(LoaderError{
+            return instantngp::unexpected(LoaderError{
                     .code = LoaderErrorCode::InvalidCameraIndex,
                     .message = "Camera index out of range for frame " + std::to_string(frame_index)});
         }
@@ -254,7 +254,7 @@ RayBatch HostpackLoader::build_ray_batch(std::size_t frame_index) const {
 core::DeviceBuffer<std::byte>::Result HostpackLoader::upload_image(
         std::size_t frame_index, core::DeviceBuffer<std::byte>& buffer) const {
     if (frame_index >= image_views_.size()) {
-        return std::unexpected(core::DeviceBufferError{
+        return instantngp::unexpected(core::DeviceBufferError{
                 .code = core::DeviceBufferErrorCode::InvalidArgument,
                 .message = "Frame index out of range in upload_image"});
     }

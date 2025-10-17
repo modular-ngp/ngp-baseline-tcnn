@@ -1,6 +1,7 @@
 #pragma once
 
-#include <expected>
+#include "instantngp/core/expected_compat.hpp"
+
 #include <string>
 #include <string_view>
 #include <utility>
@@ -70,8 +71,8 @@ public:
 
     [[nodiscard]] const Value& root() const noexcept;
 
-    static std::expected<Document, ParseError> from_string(std::string_view source);
-    static std::expected<Document, ParseError> from_file(std::string_view path);
+    static instantngp::expected<Document, ParseError> from_string(std::string_view source);
+    static instantngp::expected<Document, ParseError> from_file(std::string_view path);
 
 private:
     Value root_;

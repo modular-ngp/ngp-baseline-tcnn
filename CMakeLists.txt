@@ -31,6 +31,15 @@ include(FetchContent)
 # 3. 我们需要显式链接 CUDA Runtime 库来使用 cudaMallocAsync 等 API
 find_package(CUDAToolkit 13.0 REQUIRED)
 
+# tl::expected - C++20 compatible expected implementation for CUDA code
+# CUDA 13.0 only supports C++20, not C++23, so we need a backport of std::expected
+FetchContent_Declare(
+        expected
+        GIT_REPOSITORY https://github.com/TartanLlama/expected.git
+        GIT_TAG master
+)
+FetchContent_MakeAvailable(expected)
+
 # Tiny-CUDA-NN configuration
 set(TCNN_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
 set(TCNN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -53,6 +62,8 @@ FetchContent_MakeAvailable(dataset)
 
 add_library(instantngp_core STATIC
         src/core/config.cpp
+        src/core/network.cu
+        src/core/occupancy_grid.cu
         src/io/hostpack_loader.cpp
         include/instantngp/core/device_buffer.hpp
         include/instantngp/core/cuda_utils.hpp
@@ -64,6 +75,7 @@ target_link_libraries(instantngp_core
         # CUDA Runtime API - 必须 PUBLIC，因为 device_buffer.hpp 是 header-only 模板
         # 用户代码会直接调用 cudaMallocAsync, cudaMemcpyAsync 等函数
         CUDA::cudart
+        tl::expected
         PRIVATE
         dataset::dataset
         tiny-cuda-nn)

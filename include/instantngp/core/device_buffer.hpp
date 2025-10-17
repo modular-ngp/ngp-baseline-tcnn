@@ -1,10 +1,11 @@
 #pragma once
 
+#include "instantngp/core/expected_compat.hpp"
+
 #include <cuda_runtime.h>
 #include <cuda.h>
 
 #include <cstddef>
-#include <expected>
 #include <span>
 #include <string>
 #include <utility>
@@ -22,7 +23,7 @@ template <typename T>
 class DeviceBuffer {
 public:
     using value_type = T;
-    using Result = std::expected<void, DeviceBufferError>;
+    using Result = instantngp::expected<void, DeviceBufferError>;
 
     DeviceBuffer() = default;
     DeviceBuffer(const DeviceBuffer&) = delete;
@@ -67,7 +68,7 @@ public:
         // Use modern async allocation API for better performance with streams
         cudaError_t status = cudaMallocAsync(&allocation, total_bytes, stream);
         if (status != cudaSuccess) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::AllocationFailed,
                     .message = std::string{"cudaMallocAsync failed: "} + cudaGetErrorString(status)});
         }
@@ -77,7 +78,7 @@ public:
             status = cudaStreamSynchronize(stream);
             if (status != cudaSuccess) {
                 cudaFreeAsync(allocation, stream);
-                return std::unexpected(DeviceBufferError{
+                return instantngp::unexpected(DeviceBufferError{
                         .code = DeviceBufferErrorCode::StreamError,
                         .message = std::string{"cudaStreamSynchronize failed: "} + cudaGetErrorString(status)});
             }
@@ -95,14 +96,14 @@ public:
             return {};
         }
         if (data.data() == nullptr) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::InvalidArgument,
                     .message = "DeviceBuffer::copy_from received null data pointer"});
         }
         if (count_ != data.size()) {
             auto resized = resize(data.size(), stream);
             if (!resized.has_value()) {
-                return std::unexpected(resized.error());
+                return instantngp::unexpected(resized.error());
             }
         }
 
@@ -116,7 +117,7 @@ public:
         );
 
         if (status != cudaSuccess) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::CopyFailed,
                     .message = std::string{"cudaMemcpyAsync failed: "} + cudaGetErrorString(status)});
         }
@@ -125,7 +126,7 @@ public:
         if (stream != nullptr) {
             status = cudaStreamSynchronize(stream);
             if (status != cudaSuccess) {
-                return std::unexpected(DeviceBufferError{
+                return instantngp::unexpected(DeviceBufferError{
                         .code = DeviceBufferErrorCode::StreamError,
                         .message = std::string{"cudaStreamSynchronize failed after copy: "} + cudaGetErrorString(status)});
             }
@@ -136,12 +137,12 @@ public:
 
     Result copy_to(std::span<T> data, cudaStream_t stream = nullptr) const {
         if (empty()) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::InvalidArgument,
                     .message = "DeviceBuffer::copy_to called on empty buffer"});
         }
         if (data.size() < count_) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::InvalidArgument,
                     .message = "DeviceBuffer::copy_to destination span too small"});
         }
@@ -155,7 +156,7 @@ public:
         );
 
         if (status != cudaSuccess) {
-            return std::unexpected(DeviceBufferError{
+            return instantngp::unexpected(DeviceBufferError{
                     .code = DeviceBufferErrorCode::CopyFailed,
                     .message = std::string{"cudaMemcpyAsync failed: "} + cudaGetErrorString(status)});
         }
@@ -164,7 +165,7 @@ public:
         if (stream != nullptr) {
             status = cudaStreamSynchronize(stream);
             if (status != cudaSuccess) {
-                return std::unexpected(DeviceBufferError{
+                return instantngp::unexpected(DeviceBufferError{
                         .code = DeviceBufferErrorCode::StreamError,
                         .message = std::string{"cudaStreamSynchronize failed after copy: "} + cudaGetErrorString(status)});
             }

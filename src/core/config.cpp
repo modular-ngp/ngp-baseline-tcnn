@@ -14,7 +14,7 @@ class Parser {
 public:
     explicit Parser(std::string_view source) : source_{source} {}
 
-    std::expected<Value, ParseError> parse() {
+    instantngp::expected<Value, ParseError> parse() {
         skip_whitespace();
         auto value = parse_value();
         if (!value.has_value()) {
@@ -22,7 +22,7 @@ public:
         }
         skip_whitespace();
         if (!is_end()) {
-            return std::unexpected(ParseError{.message = "Trailing characters after JSON document", .offset = cursor_});
+            return instantngp::unexpected(ParseError{.message = "Trailing characters after JSON document", .offset = cursor_});
         }
         return value;
     }
@@ -49,9 +49,9 @@ private:
         }
     }
 
-    std::expected<Value, ParseError> parse_value() {
+    instantngp::expected<Value, ParseError> parse_value() {
         if (is_end()) {
-            return std::unexpected(ParseError{.message = "Unexpected end of input", .offset = cursor_});
+            return instantngp::unexpected(ParseError{.message = "Unexpected end of input", .offset = cursor_});
         }
 
         const char c = peek();
@@ -81,7 +81,7 @@ private:
         }
     }
 
-    std::expected<Value, ParseError> parse_object() {
+    instantngp::expected<Value, ParseError> parse_object() {
         Value::Object members{};
         advance(); // consume '{'
         skip_whitespace();
@@ -123,7 +123,7 @@ private:
         return Value{std::move(members)};
     }
 
-    std::expected<Value, ParseError> parse_array() {
+    instantngp::expected<Value, ParseError> parse_array() {
         Value::Array elements{};
         advance(); // consume '['
         skip_whitespace();
@@ -152,7 +152,7 @@ private:
         return Value{std::move(elements)};
     }
 
-    std::expected<Value, ParseError> parse_number() {
+    instantngp::expected<Value, ParseError> parse_number() {
         const std::size_t start = cursor_;
         if (peek() == '-') {
             advance();
@@ -198,7 +198,7 @@ private:
         return Value{number};
     }
 
-    std::expected<Value, ParseError> parse_literal(std::string_view literal, Value value) {
+    instantngp::expected<Value, ParseError> parse_literal(std::string_view literal, Value value) {
         for (const char expected : literal) {
             if (is_end() || advance() != expected) {
                 return std::unexpected(ParseError{.message = "Invalid literal", .offset = cursor_});
@@ -207,7 +207,7 @@ private:
         return value;
     }
 
-    std::expected<std::string, ParseError> parse_string() {
+    instantngp::expected<std::string, ParseError> parse_string() {
         std::string result;
         if (advance() != '"') {
             return std::unexpected(ParseError{.message = "Expected '\"' to start string", .offset = cursor_});
@@ -314,7 +314,7 @@ const Value& Document::root() const noexcept {
     return root_;
 }
 
-std::expected<Document, ParseError> Document::from_string(std::string_view source) {
+instantngp::expected<Document, ParseError> Document::from_string(std::string_view source) {
     Parser parser{source};
     auto result = parser.parse();
     if (!result.has_value()) {
@@ -323,7 +323,7 @@ std::expected<Document, ParseError> Document::from_string(std::string_view sourc
     return Document{std::move(result.value())};
 }
 
-std::expected<Document, ParseError> Document::from_file(std::string_view path) {
+instantngp::expected<Document, ParseError> Document::from_file(std::string_view path) {
     namespace fs = std::filesystem;
     const fs::path file_path{path};
     std::ifstream file{file_path, std::ios::binary};

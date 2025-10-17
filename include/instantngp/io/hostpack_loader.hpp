@@ -1,11 +1,11 @@
 #pragma once
 
 #include "instantngp/core/device_buffer.hpp"
+#include "instantngp/core/expected_compat.hpp"
 #include "instantngp/core/math.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <expected>
 #include <span>
 #include <string>
 #include <string_view>
@@ -75,7 +75,7 @@ struct LoaderError {
 class HostpackLoader {
 public:
     HostpackLoader() = default;
-    static std::expected<HostpackLoader, LoaderError> create(std::string_view pack_path);
+    static instantngp::expected<HostpackLoader, LoaderError> create(std::string_view pack_path);
 
     HostpackLoader(const HostpackLoader&) = delete;
     HostpackLoader& operator=(const HostpackLoader&) = delete;
